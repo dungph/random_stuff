@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>App!</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+</head>
+
+<body id="body">
+  <section class="hero is-fullheight is-light">
+    <div class="hero-body">
+      <div class="container">
+        <div class="columns is-centered">
+          <div class="column is-4">
+            <div class="box">
+              <div class="group">
+                <label class="label" id="human-name"></label>
+                <div class="field">
+                  <button id="checkin-button" class="button is-primary is-fullwidth" onclick="checkIn()">
+                    Checkin
+                  </button>
+                </div>
+                <div class="field">
+                  <button id="checkout-button" class="button is-danger is-fullwidth" onclick="checkOut()">
+                    Checkout
+                  </button>
+                </div>
+                <div class="field">
+                  <button class="button is-info js-modal-trigger is-fullwidth" data-target="access-token-modal">
+                    Nhập Access Token
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="access-token-modal" class="modal">
+    <div class="modal-background"></div>
+
+    <div class="modal-content">
+      <div class="box">
+        <label class="label"> Nhập Access Token </label>
+        <div class="field has-addons">
+          <div id="access-token-input-control" class="control" style="width: 100%;">
+            <input class="input" id="access-token-input" placeholder="Access Token">
+          </div>
+          <div class="control">
+            <button class="button is-info" id="access-token-submit"> Nhập </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="modal-close is-large" aria-label="close"></button>
+  </div>
+</body>
+
+<script>
+
+  const checkIn = async () => {
+    let accessToken = localStorage.accessToken;
+    await fetch("/api/v1/" + accessToken + "/telemetry", {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify({action: "Check In"})
+    });
+  }
+  const checkOut = async () => {
+    let accessToken = localStorage.accessToken;
+    await fetch("/api/v1/" + accessToken + "/telemetry", {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify({action: "Check Out"})
+    });
+  }
+  const getInfo = async () => {
+    if (localStorage.accessToken) {
+      let uri = "/api/v1/" + localStorage.accessToken + "/attributes?sharedKeys=name";
+      let info = await fetch(uri);
+      let infoJson = await info.json();
+      document.getElementById("human-name").innerText = "Nhân viên: " + infoJson.shared.name;
+      return infoJson;
+    } else {
+      document.getElementById("access-token-modal").classList.add("is-active");
+    }
+  }
+
+
+  if (localStorage.accessToken) {
+  } else {
+    document.getElementById("access-token-modal").classList.add("is-active");
+  }
+
+  document.getElementById("access-token-input").value = localStorage.accessToken;
+
+  document.getElementById("access-token-submit").onclick = async () => {
+    let token = document.getElementById("access-token-input").value;
+    localStorage.accessToken = token;
+    document.getElementById("access-token-input-control").classList.add("is-loading");
+    let res = await getInfo();
+    document.getElementById("access-token-input-control").classList.remove("is-loading");
+    document.getElementById("access-token-modal").classList.remove("is-active");
+  }
+
+  document.getElementById("body").onload = async () => {
+    let info = await getInfo();
+    console.log(info);
+    document.getElementById("human-name").innerText = "Nhân viên: " + info.shared.name;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Functions to open and close a modal
+    function openModal($el) {
+      $el.classList.add('is-active');
+    }
+
+    function closeModal($el) {
+      $el.classList.remove('is-active');
+    }
+
+    function closeAllModals() {
+      (document.querySelectorAll('.modal') || []).forEach(($modal) => {
+        closeModal($modal);
+      });
+    }
+
+    // Add a click event on buttons to open a specific modal
+    (document.querySelectorAll('.js-modal-trigger') || []).forEach(($trigger) => {
+      const modal = $trigger.dataset.target;
+      const $target = document.getElementById(modal);
+
+      $trigger.addEventListener('click', () => {
+        openModal($target);
+      });
+    });
+
+    // Add a click event on various child elements to close the parent modal
+    (document.querySelectorAll('.modal-background, .modal-close, .modal-card-head .delete, .modal-card-foot .button') || []).forEach(($close) => {
+      const $target = $close.closest('.modal');
+
+      $close.addEventListener('click', () => {
+        closeModal($target);
+      });
+    });
+
+    // Add a keyboard event to close all modals
+    document.addEventListener('keydown', (event) => {
+      const e = event || window.event;
+
+      if (e.keyCode === 27) { // Escape key
+        closeAllModals();
+      }
+    });
+  });
+</script>
+
+</html>
