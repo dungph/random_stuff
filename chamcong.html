@@ -45,13 +45,18 @@
 
     <div class="modal-content">
       <div class="box">
-        <label class="label"> Access Token </label>
-        <code id="access-token-display"> </code>
+        <div class="level">
+          <div class="level-left">
+            <code id="access-token-display"> </code>
+          </div>
+          <div class="level-right">
+            <button class="button is-info is-outlined" id="access-token-refresh"> Tạo Access Token mới</button>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <button class="modal-close is-large" aria-label="close"></button>
-  </div>
+      <button class="modal-close is-large" aria-label="close"></button>
+    </div>
 </body>
 
 <script>
@@ -81,6 +86,7 @@
     let info = await fetch(uri);
     if (info.status == 401) {
       document.getElementById("human-name").innerText = "Chưa thêm thiết bị";
+      document.getElementById("human-name").classList.add("has-text-danger");
     } else {
       let infoJson = await info.json();
       document.getElementById("human-name").innerText = "Nhân viên: " + infoJson.shared.name;
@@ -90,26 +96,21 @@
 
 
   if (localStorage.accessToken) {
+    document.getElementById("access-token-display").innerText = localStorage.accessToken;
   } else {
-    let r = (Math.random() + 1).toString(36).substring(7);
+    let r = (Math.random() + 1).toString(36).substring(5);
     localStorage.accessToken = r;
-  }
-
-  document.getElementById("access-token-input").value = localStorage.accessToken;
-
-  document.getElementById("access-token-submit").onclick = async () => {
-    let token = document.getElementById("access-token-input").value;
-    localStorage.accessToken = token;
-    document.getElementById("access-token-input-control").classList.add("is-loading");
-    let res = await getInfo();
-    document.getElementById("access-token-input-control").classList.remove("is-loading");
-    document.getElementById("access-token-modal").classList.remove("is-active");
+    document.getElementById("access-token-display").innerText = localStorage.accessToken;
   }
 
   document.getElementById("body").onload = async () => {
     let info = await getInfo();
-    console.log(info);
-    document.getElementById("human-name").innerText = "Nhân viên: " + info.shared.name;
+  }
+
+  document.getElementById("access-token-refresh").onclick = async () => {
+    let r = (Math.random() + 1).toString(36).substring(5);
+    localStorage.accessToken = r;
+    document.getElementById("access-token-display").innerText = localStorage.accessToken;
   }
 
   document.addEventListener('DOMContentLoaded', () => {
