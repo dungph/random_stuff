@@ -29,7 +29,7 @@
                 </div>
                 <div class="field">
                   <button class="button is-info js-modal-trigger is-fullwidth" data-target="access-token-modal">
-                    Nhập Access Token
+                    Hiển thị Access Token
                   </button>
                 </div>
               </div>
@@ -45,15 +45,8 @@
 
     <div class="modal-content">
       <div class="box">
-        <label class="label"> Nhập Access Token </label>
-        <div class="field has-addons">
-          <div id="access-token-input-control" class="control" style="width: 100%;">
-            <input class="input" id="access-token-input" placeholder="Access Token">
-          </div>
-          <div class="control">
-            <button class="button is-info" id="access-token-submit"> Nhập </button>
-          </div>
-        </div>
+        <label class="label"> Access Token </label>
+        <code id="access-token-display"> </code>
       </div>
     </div>
 
@@ -84,21 +77,22 @@
     });
   }
   const getInfo = async () => {
-    if (localStorage.accessToken) {
-      let uri = "/api/v1/" + localStorage.accessToken + "/attributes?sharedKeys=name";
-      let info = await fetch(uri);
+    let uri = "/api/v1/" + localStorage.accessToken + "/attributes?sharedKeys=name";
+    let info = await fetch(uri);
+    if (info.status == 401) {
+      document.getElementById("human-name").innerText = "Chưa thêm thiết bị";
+    } else {
       let infoJson = await info.json();
       document.getElementById("human-name").innerText = "Nhân viên: " + infoJson.shared.name;
       return infoJson;
-    } else {
-      document.getElementById("access-token-modal").classList.add("is-active");
     }
   }
 
 
   if (localStorage.accessToken) {
   } else {
-    document.getElementById("access-token-modal").classList.add("is-active");
+    let r = (Math.random() + 1).toString(36).substring(7);
+    localStorage.accessToken = r;
   }
 
   document.getElementById("access-token-input").value = localStorage.accessToken;
